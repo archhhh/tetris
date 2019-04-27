@@ -10,29 +10,33 @@ class Game extends React.Component{
         const matrix = [];
         for(let i = 0; i < 20; ++i)
             matrix.push(new Array(12).fill(0));
-        this.state = {
-            position: {
+        this.position = {
                 x: 4,
                 y: 1,
-            },
-            currentBlock: [
-                [0,0,0],
-                [1,1,1],
-                [0,1,0],
-            ],
-            setBlocks: matrix,
-        };
+            };
+        this.currentBlock = [
+            [0,0,0],
+            [1,1,1],
+            [0,1,0],
+        ];
+        this.setBlocks = matrix;
         this.last = 0;
         this.counter = 0;
         document.addEventListener('keydown', this.onKeyDown);
     }
     merge = (setBlocks, currentBlock) => {
-        currentBlock.forEach((row, y) => {
+        const matrix = [];
+        for(let i = 0; i < 20; ++i)
+            matrix[i] = Array.from(setBlocks[i]);
+        matrix.forEach((row, y) => {
             row.forEach((value ,x) => {
                     if(value !== 0)
-                        setBlocks[y+this.state.position.y][x+this.state.position.x] = value;
+                        matrix[y+this.position.y][x+this.position.x] = value;
             });
         });
+        this.setBlocks = matrix;
+    }
+    checkCollision = () => {
     }
     componentDidMount = () => {
         this.canvas = this.refs.canvas;
@@ -44,7 +48,7 @@ class Game extends React.Component{
         this.context= this.canvas.getContext('2d');
         this.context.fillStyle = '#000';
         this.context.fillRect(0,0, this.width, this.height);
-        this.drawMatrix(this.state.currentBlock);
+        this.drawMatrix(this.currentBlock);
     }
     drawMatrix = (matrix) => {
         matrix.forEach( (row, y) => {
@@ -52,7 +56,7 @@ class Game extends React.Component{
                 if(value !== 0)
                 {
                     this.context.fillStyle = 'red';
-                    this.context.fillRect(x+this.state.position.x, y+this.state.position.y, 1, 1);
+                    this.context.fillRect(x+this.position.x, y+this.position.y, 1, 1);
                 }
             });
         });
@@ -62,28 +66,24 @@ class Game extends React.Component{
         this.last = time;
         if(this.counter >= 1000){
             this.last = time;
-            let x = this.state.position.x;
-            let y = this.state.position.y;
-            this.setState({position: {x: x, y: ++y}});
+            ++this.position.y;
             this.counter = 0;
         }
         this.draw();
         window.requestAnimationFrame(this.update);
     }
     onKeyDown = (event) => {
-        let x = this.state.position.x;
-        let y = this.state.position.y;
         switch(event.keyCode)
         {
             case 37: 
-                this.setState({position: {x: --x, y: y}}); 
+                --this.position.x;
                 break;
             case 39: 
-                this.setState({position: {x: ++x, y: y}}); 
+                ++this.position.x;
                 break;
             case 40: 
                 {
-                this.setState({position: {x: x, y: ++y}});
+                ++this.position.y;
                 this.counter = 0;
                 } 
                 break;
