@@ -7,18 +7,32 @@ class Game extends React.Component{
         super(props);
         this.width = this.props.width;
         this.height = this.props.height;
+        const matrix = [];
+        for(let i = 0; i < 20; ++i)
+            matrix.push(new Array(12).fill(0));
         this.state = {
-            player: {
+            position: {
                 x: 4,
                 y: 1,
             },
-            matrix: [
+            currentBlock: [
                 [0,0,0],
                 [1,1,1],
                 [0,1,0],
             ],
+            setBlocks: matrix,
         };
         this.last = 0;
+        this.counter = 0;
+        document.addEventListener('keydown', this.onKeyDown);
+    }
+    merge = (setBlocks, currentBlock) => {
+        currentBlock.forEach((row, y) => {
+            row.forEach((value ,x) => {
+                    if(value !== 0)
+                        setBlocks[y+this.state.position.y][x+this.state.position.x] = value;
+            });
+        });
     }
     componentDidMount = () => {
         this.canvas = this.refs.canvas;
@@ -30,7 +44,7 @@ class Game extends React.Component{
         this.context= this.canvas.getContext('2d');
         this.context.fillStyle = '#000';
         this.context.fillRect(0,0, this.width, this.height);
-        this.drawMatrix(this.state.matrix);
+        this.drawMatrix(this.state.currentBlock);
     }
     drawMatrix = (matrix) => {
         matrix.forEach( (row, y) => {
@@ -38,21 +52,43 @@ class Game extends React.Component{
                 if(value !== 0)
                 {
                     this.context.fillStyle = 'red';
-                    this.context.fillRect(x+this.state.player.x, y+this.state.player.y, 1, 1);
+                    this.context.fillRect(x+this.state.position.x, y+this.state.position.y, 1, 1);
                 }
             });
         });
     }
     update = (time = 0) => {
-        if(time - this.last >= 1000){
+        this.counter += time-this.last;
+        this.last = time;
+        if(this.counter >= 1000){
             this.last = time;
-            let x = this.state.player.x;
-            let y = this.state.player.y;
-            this.setState({player: {x: x, y: ++y}});
+            let x = this.state.position.x;
+            let y = this.state.position.y;
+            this.setState({position: {x: x, y: ++y}});
+            this.counter = 0;
         }
         this.draw();
         window.requestAnimationFrame(this.update);
-    } 
+    }
+    onKeyDown = (event) => {
+        let x = this.state.position.x;
+        let y = this.state.position.y;
+        switch(event.keyCode)
+        {
+            case 37: 
+                this.setState({position: {x: --x, y: y}}); 
+                break;
+            case 39: 
+                this.setState({position: {x: ++x, y: y}}); 
+                break;
+            case 40: 
+                {
+                this.setState({position: {x: x, y: ++y}});
+                this.counter = 0;
+                } 
+                break;
+        }
+    };
     render(){
         return (
             <canvas ref="canvas" width={this.width} height={this.height}></canvas>
