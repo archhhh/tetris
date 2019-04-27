@@ -4,15 +4,13 @@ import './style.css';
 
 class Game extends React.Component{
     constructor(props){
-        super(props);
-        this.width = this.props.width;
-        this.height = this.props.height;
+        super(props)
         const matrix = [];
         for(let i = 0; i < 20; ++i)
             matrix.push(new Array(12).fill(0));
         this.position = {
                 x: 4,
-                y: 1,
+                y: 0,
             };
         this.currentBlock = [
             [0,0,0],
@@ -24,11 +22,11 @@ class Game extends React.Component{
         this.counter = 0;
         document.addEventListener('keydown', this.onKeyDown);
     }
-    merge = (setBlocks, currentBlock) => {
+    merge = () => {
         const matrix = [];
         for(let i = 0; i < 20; ++i)
-            matrix[i] = Array.from(setBlocks[i]);
-        matrix.forEach((row, y) => {
+            matrix[i] = Array.from(this.setBlocks[i]);
+        this.currentBlock.forEach((row, y) => {
             row.forEach((value ,x) => {
                     if(value !== 0)
                         matrix[y+this.position.y][x+this.position.x] = value;
@@ -37,6 +35,15 @@ class Game extends React.Component{
         this.setBlocks = matrix;
     }
     checkCollision = () => {
+        for(let y = 0; y < this.currentBlock.length; ++y){
+            for(let x = 0; x < this.currentBlock[y].length; ++x){
+                if(this.currentBlock[y][x] && (this.setBlocks[y+this.position.y] === undefined 
+                    || this.setBlocks[y+this.position.y][x+this.position.x] === undefined 
+                    || this.setBlocks[y+this.position.y][x+this.position.x])){
+                    return true;
+                }
+            }
+        }
     }
     componentDidMount = () => {
         this.canvas = this.refs.canvas;
@@ -47,7 +54,7 @@ class Game extends React.Component{
     draw = () => {
         this.context= this.canvas.getContext('2d');
         this.context.fillStyle = '#000';
-        this.context.fillRect(0,0, this.width, this.height);
+        this.context.fillRect(0,0, 240, 400);
         this.drawMatrix(this.currentBlock);
     }
     drawMatrix = (matrix) => {
@@ -62,12 +69,20 @@ class Game extends React.Component{
         });
     }
     update = (time = 0) => {
+
         this.counter += time-this.last;
         this.last = time;
         if(this.counter >= 1000){
             this.last = time;
             ++this.position.y;
+            if(this.checkCollision())
+            {  
+                --this.position.y;
+                this.merge();
+                this.position.y = 0;
+            }
             this.counter = 0;
+
         }
         this.draw();
         window.requestAnimationFrame(this.update);
@@ -91,14 +106,14 @@ class Game extends React.Component{
     };
     render(){
         return (
-            <canvas ref="canvas" width={this.width} height={this.height}></canvas>
+            <canvas ref="canvas" width="240" height="400"></canvas>
         );
     }
 
 }
 
 ReactDOM.render(
-    <Game width="240" height="400"/>,
+    <Game/>,
     document.getElementById('root')
   );
   
