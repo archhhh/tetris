@@ -20,7 +20,8 @@ class Game extends React.Component{
         this.setBlocks = matrix;
         this.last = 0;
         this.counter = 0;
-        document.addEventListener('keydown', this.onKeyDown);
+        this.lastPressed = [];
+        document.addEventListener("keydown", this.onKeyDown);
     }
     merge = () => {
         const matrix = [];
@@ -69,40 +70,47 @@ class Game extends React.Component{
         });
     }
     update = (time = 0) => {
-
+        if(this.lastPressed[37] === true)
+        {
+                --this.position.x;
+        }else if(this.lastPressed[39] === true)
+        {
+                ++this.position.x;
+        }else if(this.lastPressed[40] === true){
+                ++this.position.y;
+                this.counter = 0;
+        }
         this.counter += time-this.last;
         this.last = time;
-        if(this.counter >= 1000){
-            this.last = time;
-            ++this.position.y;
-            if(this.checkCollision())
-            {  
+        if(this.checkCollision())
+        {  
+            if(this.lastPressed[37] === true)
+            {
+                ++this.position.x;
+            }else if(this.lastPressed[39] === true)
+            {
+                --this.position.x;
+            }else {
                 --this.position.y;
                 this.merge();
                 this.position.y = 0;
+                this.position.x = 5;
+                this.counter = 0;
+                this.last = time;
             }
+        }
+        if(this.counter >= 1000){
+            this.last = time;
+            ++this.position.y;
             this.counter = 0;
-
         }
         this.draw();
         window.requestAnimationFrame(this.update);
+        this.lastPressed = new Array;
     }
     onKeyDown = (event) => {
-        switch(event.keyCode)
-        {
-            case 37: 
-                --this.position.x;
-                break;
-            case 39: 
-                ++this.position.x;
-                break;
-            case 40: 
-                {
-                ++this.position.y;
-                this.counter = 0;
-                } 
-                break;
-        }
+        this.lastPressed = new Array;
+        this.lastPressed[event.keyCode] = true;
     };
     render(){
         return (
