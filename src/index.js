@@ -4,7 +4,17 @@ import './style.css';
 
 class Game extends React.Component{
     constructor(props){
-        super(props)
+        super(props);
+        this.colors = [
+            null,
+            '#FF0D72',
+            '#0DC2FF',
+            '#0DFF72',
+            '#F538FF',
+            '#FF8E0D',
+            '#FFE138',
+            '#3877FF',
+        ]
         const matrix = [];
         for(let i = 0; i < 20; ++i)
             matrix.push(new Array(12).fill(0));
@@ -12,12 +22,9 @@ class Game extends React.Component{
                 x: 4,
                 y: 0,
             };
-        this.currentBlock = [
-            [0,0,0],
-            [1,1,1],
-            [0,1,0],
-        ];
+        this.currentBlock = [];
         this.setBlocks = matrix;
+        this.playerReset();
         this.last = 0;
         this.counter = 0;
         this.lastPressed = [];
@@ -56,18 +63,78 @@ class Game extends React.Component{
         this.context= this.canvas.getContext('2d');
         this.context.fillStyle = '#000';
         this.context.fillRect(0,0, 240, 400);
-        this.drawMatrix(this.currentBlock);
+        this.drawMatrix(this.currentBlock, this.position);
+        this.drawMatrix(this.setBlocks, {x: 0, y: 0});
     }
-    drawMatrix = (matrix) => {
+    drawMatrix = (matrix, position) => {
         matrix.forEach( (row, y) => {
             row.forEach( (value, x) => {
                 if(value !== 0)
                 {
-                    this.context.fillStyle = 'red';
-                    this.context.fillRect(x+this.position.x, y+this.position.y, 1, 1);
+                    this.context.fillStyle = this.colors[value];
+                    this.context.fillRect(x+position.x, y+position.y, 1, 1);
                 }
             });
         });
+    }
+    playerReset = () => {
+        let pieces = 'ILJOTSZ';
+        this.currentBlock =  this.createPiece(pieces[pieces.length*Math.random() | 0]);
+        this.position = {
+            y: 0,
+            x: (this.setBlocks[0].length / 2 | 0 ) - (this.currentBlock[0].length / 2 | 0)
+        };
+        if(this.checkCollision()){
+            this.setBlocks.forEach((row) => {
+                row.fill(0);
+            });
+        }
+    }
+    createPiece = (type) => {
+        const random = (Math.random()*6+1)|0;
+        if(type === 'T'){
+            return [
+                [random,random,random],
+                [0,random,0],
+                [0,0,0],
+            ];
+        }else if(type === 'O'){
+            return [
+                [random,random],
+                [random,random],
+            ];    
+        }else if(type === 'L'){
+            return [
+                [0,random,0],
+                [0,random,0],
+                [0,random,random],
+            ];
+        }else if(type === 'J'){
+            return [
+                [0,random,0],
+                [0,random,0],
+                [random,random,0],
+            ];
+        }else if(type === 'I'){
+            return [
+                [0,random,0,0],
+                [0,random,0,0],
+                [0,random,0,0],
+                [0,random,0,0],
+            ];
+        }else if(type === 'S'){
+            return [
+                [0,random,random],
+                [random,random,0],
+                [0,0,0],
+            ];
+        }else if(type === 'Z'){
+            return [
+                [random,random,0],
+                [0,random,random],
+                [0,0,0],
+            ];
+        }    
     }
     update = (time = 0) => {
         if(this.lastPressed[37] === true)
@@ -93,8 +160,7 @@ class Game extends React.Component{
             }else {
                 --this.position.y;
                 this.merge();
-                this.position.y = 0;
-                this.position.x = 5;
+                this.playerReset();
                 this.counter = 0;
                 this.last = time;
             }
